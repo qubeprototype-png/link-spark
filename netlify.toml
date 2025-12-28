@@ -1,0 +1,17 @@
+# Netlify configuration for URL shortener redirects
+
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+[[redirects]]
+  from = "/:shortCode"
+  to = "/.netlify/functions/redirect/:shortCode"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+

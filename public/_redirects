@@ -1,0 +1,7 @@
+# Cloudflare Pages / Netlify redirects file
+# This file is copied to the dist folder during build
+
+# Redirect short codes to client-side handler (fallback)
+# Note: For best performance, use serverless functions or edge functions
+/:shortCode  /  200
+

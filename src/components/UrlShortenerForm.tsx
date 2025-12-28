@@ -1,14 +1,20 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link2, ArrowRight, Copy, Check, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { createShortLink } from "@/lib/links";
 
 const UrlShortenerForm = () => {
   const [url, setUrl] = useState("");
   const [shortenedUrl, setShortenedUrl] = useState<string | null>(null);
+  const [shortCode, setShortCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,33 +23,51 @@ const UrlShortenerForm = () => {
       return;
     }
 
-    // Basic URL validation
-    try {
-      new URL(url.startsWith("http") ? url : `https://${url}`);
-    } catch {
-      toast.error("Please enter a valid URL");
+    // Check if user is logged in
+    if (!user) {
+      toast.error("Please sign in to create shortened links");
+      navigate("/login");
       return;
     }
 
     setIsLoading(true);
-    
-    // Simulate API call - will be replaced with actual Supabase call
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    
-    const shortCode = Math.random().toString(36).substring(2, 8);
-    const shortened = `linkforge.app/${shortCode}`;
-    setShortenedUrl(shortened);
-    setIsLoading(false);
-    toast.success("URL shortened successfully!");
+
+    try {
+      const { data: link, error } = await createShortLink(url, user.id);
+
+      if (error || !link) {
+        toast.error(error?.message || "Failed to shorten URL. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Success - set the shortened URL
+      const shortUrl = `${window.location.origin}/${link.short_code}`;
+      setShortenedUrl(shortUrl);
+      setShortCode(link.short_code);
+      setIsLoading(false);
+      toast.success("URL shortened successfully!");
+      
+      // Reset the input
+      setUrl("");
+    } catch (error) {
+      console.error("Error creating short link:", error);
+      toast.error("An unexpected error occurred. Please try again.");
+      setIsLoading(false);
+    }
   };
 
   const handleCopy = async () => {
     if (!shortenedUrl) return;
     
-    await navigator.clipboard.writeText(`https://${shortenedUrl}`);
-    setCopied(true);
-    toast.success("Copied to clipboard!");
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(shortenedUrl);
+      setCopied(true);
+      toast.success("Copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error("Failed to copy URL");
+    }
   };
 
   const handleReset = () => {
@@ -128,7 +152,7 @@ const UrlShortenerForm = () => {
                     className="h-10 w-10"
                   >
                     <a
-                      href={`https://${shortenedUrl}`}
+                      href={shortenedUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Open shortened URL"
@@ -147,8 +171,12 @@ const UrlShortenerForm = () => {
                 >
                   Shorten another URL
                 </Button>
-                <Button variant="default" className="flex-1">
-                  Sign up to track clicks
+                <Button 
+                  variant="default" 
+                  className="flex-1"
+                  onClick={() => navigate("/dashboard")}
+                >
+                  View Dashboard
                 </Button>
               </div>
             </div>

@@ -77,6 +77,7 @@ const Index = () => {
             </div>
 
             <div 
+              id="url-shortener-form"
               className="animate-slide-up"
               style={{ animationDelay: "0.4s" }}
             >
@@ -132,7 +133,15 @@ const Index = () => {
                 <p className="text-lg text-primary-foreground/80 mb-8 max-w-xl mx-auto">
                   Join thousands of brands using LinkForge to shorten, track, and own their links.
                 </p>
-                <button className="inline-flex items-center justify-center h-12 px-8 rounded-2xl bg-background text-foreground font-semibold shadow-card hover:shadow-elevated transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+                <button 
+                  onClick={() => {
+                    const formSection = document.getElementById("url-shortener-form");
+                    if (formSection) {
+                      formSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                  }}
+                  className="inline-flex items-center justify-center h-12 px-8 rounded-2xl bg-background text-foreground font-semibold shadow-card hover:shadow-elevated transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                >
                   Get Started for Free
                 </button>
               </div>
